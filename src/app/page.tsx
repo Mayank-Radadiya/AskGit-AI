@@ -8,8 +8,6 @@ export default async function Home() {
     redirect("/sign-in");
   }
   return (
-    <>
-      <h1 className="text-3xl"> Hello</h1>
-    </>
+   redirect("/dashboard")
   );
 }

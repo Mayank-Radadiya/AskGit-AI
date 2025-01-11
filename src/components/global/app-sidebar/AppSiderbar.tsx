@@ -53,9 +53,7 @@ const AppSiderbar: FC = ({}) => {
           <Link href="/dashboard">
             <Image src="logo.svg" width={40} height={40} alt="logo" />
           </Link>
-          {open && (
-            <h1 className="text-xl font-bold">AskGit AI</h1>
-          )}
+          {open && <h1 className="text-xl font-bold">AskGit AI</h1>}
           <SidebarTrigger />
         </div>
       </SidebarHeader>
