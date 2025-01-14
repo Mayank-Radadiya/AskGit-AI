@@ -36,6 +36,7 @@ const page: FC = ({}) => {
          <div className="m-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
                {/* ask Que and meeting */}
+               {project?.id}
             </div>
          </div>
       </div>
