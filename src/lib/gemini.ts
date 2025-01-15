@@ -44,8 +44,34 @@ export const aISummariesCommit = async (diff: string) => {
     It is given only as an example of appropriate comments.`,
       `Please summaries the following diff file: \n\n ${diff}`,
    ]);
-
-   console.log("Ai Response => " ,response.response.text());
-
    return response.response.text();
 };
+
+// console.log(
+//    await aISummariesCommit(`diff --git a/index.html b/index.html
+// index 9e25114..71d87f9 100644
+// --- a/index.html
+// +++ b/index.html
+// @@ -308,7 +308,7 @@ <h2>Stay Updated</h2>
+//                </form>
+//              </div>
+//            </div>
+// -          <p>&copy; 2025 AI Innovations. All rights reserved.</p>
+// +          <p>&copy; 2025 Sundown Studio. All rights reserved.</p>
+//          </footer>
+//        </div>
+//      </div>
+// diff --git a/style.css b/style.css
+// index 00b24f7..2274a4b 100644
+// --- a/style.css
+// +++ b/style.css
+// @@ -634,7 +634,7 @@ h3 {
+//    min-height: 200px;
+//  }
+//  #page6 h2 {
+// -  font-size: 35px;
+// +  font-size: 30px;
+//    font-weight: 900;
+//    letter-spacing: 3px;
+//    color: #000;`),
+// );

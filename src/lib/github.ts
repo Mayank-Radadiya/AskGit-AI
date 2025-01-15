@@ -7,8 +7,6 @@ export const octokit = new Octokit({
    auth: process.env.GITHUB_TOKEN,
 });
 
-const TestGithubUrl = "https://github.com/Mayank-Radadiya/Sundown-Studio";
-
 type Response = {
    commitMessage: string;
    commitHash: string;
@@ -85,25 +83,16 @@ const filterUnprocessedCommit = async (
 
 const summariesCommits = async (githubUrl: string, commitHash: string) => {
    //https://github.com/Mayank-Radadiya/Sundown-Studio/commit/5c18b1c3e7efacd7e621f7a9aaeeedbd55ac2211.diff
-   // try {
-   //    const { data } = await axios.get(
-   //       `${githubUrl}/commit/${commitHash}.diff`,
-   //       {
-   //          headers: {
-   //             Accept: "application/vnd.github.v3.diff",
-   //          },
-   //       },
-   //    );
-   //    return (await aISummariesCommit(data)) || "Error from  AI Server";
-   // } catch (error) {
-   //    console.log("Error during Commit Summaries");
-   // }
-   const { data } = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
-      headers: {
-         Accept: "application/vnd.github.v3.diff",
+   const cleanGithubUrl = githubUrl.replace(/\.git$/, "");
+
+   const { data } = await axios.get(
+      `${cleanGithubUrl}/commit/${commitHash}.diff`,
+      {
+         headers: {
+            Accept: "application/vnd.github.v3.diff",
+         },
       },
-   });
-   console.log("data => ", data);
+   );
 
    return (await aISummariesCommit(data)) || "";
 };
@@ -115,37 +104,34 @@ export const pollCommits = async (projectId: string) => {
       projectId,
       commitHashes,
    );
-   console.log(2);
 
    const summariesResponse = await Promise.allSettled(
       unprocessedCommits.map((commit) => {
+         console.log(commit.commitHash);
+
          return summariesCommits(githubUrl, commit.commitHash);
       }),
    );
-   console.log(3);
 
    const summaries = summariesResponse.map((response) => {
       if (response.status === "fulfilled") {
-         console.log("=>", response.value);
-
          return response.value;
       }
       return "";
    });
-   console.log(4);
-
-   console.log(summaries);
 
    const commits = await db.commit.createMany({
-      data: summaries.map((summary, index) => ({
-         projectId: projectId,
-         commitHash: unprocessedCommits[index]!.commitHash,
-         commitMessage: unprocessedCommits[index]!.commitMessage,
-         commitAuthorAvatar: unprocessedCommits[index]!.commitAuthorAvatar,
-         commitAuthorName: unprocessedCommits[index]!.commitAuthorName,
-         commitDate: unprocessedCommits[index]!.commitDate,
-         summary: summary ?? "", // Provide a default value if undefined
-      })),
+      data: summaries.map((summary, index) => {
+         return {
+            projectId: projectId,
+            commitHash: unprocessedCommits[index]!.commitHash,
+            commitMessage: unprocessedCommits[index]!.commitMessage,
+            commitAuthorAvatar: unprocessedCommits[index]!.commitAuthorAvatar,
+            commitAuthorName: unprocessedCommits[index]!.commitAuthorName,
+            commitDate: unprocessedCommits[index]!.commitDate,
+            summary: summary,
+         };
+      }),
    });
 
    return commits;
