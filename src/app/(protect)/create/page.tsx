@@ -30,6 +30,11 @@ const CreatePage = () => {
             onSuccess: () => {
                toast.success("Project Created Successfully");
                refetch();
+               setTimeout(() => {
+                  toast.success(
+                     "Go to Dashboard and Select your project from the sidebar",
+                  );
+               }, 2000); // Delay of 2 seconds (2000 milliseconds)
             },
             onError: () => {
                toast.error("Failed to create project.");

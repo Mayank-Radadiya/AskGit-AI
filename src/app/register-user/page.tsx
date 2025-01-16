@@ -7,7 +7,7 @@ import { toast } from "sonner";
 const page: FC = async () => {
   const { userId } = await auth();
   if (!userId) {
-    toast("Somting went Wrong, Try again");
+    toast("Something went Wrong, Try again");
     redirect("sign-in");
   }
 
@@ -15,7 +15,7 @@ const page: FC = async () => {
 
   const user = await client.users.getUser(userId);
   if (!user) {
-    toast("Somting went Wrong, Try again");
+    toast("Something went Wrong, Try again");
     redirect("sign-in");
   }
 

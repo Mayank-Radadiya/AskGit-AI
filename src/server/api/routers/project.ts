@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { pollCommits } from "@/lib/github";
+import { TRPCError } from "@trpc/server";
 
 export const projectRouter = createTRPCRouter({
    createProject: protectedProcedure
@@ -38,15 +39,37 @@ export const projectRouter = createTRPCRouter({
       }),
 
    getAllProjects: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.userId) {
+         throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User ID is missing.",
+         });
+      }
+
       return await ctx.db.project.findMany({
          where: {
             userToProjects: {
                some: {
-                  userId: ctx.user.userId!,
+                  userId: ctx.user.userId,
                },
             },
             deletedAt: null,
          },
       });
    }),
+
+   getCommits: protectedProcedure
+      .input(
+         z.object({
+            projectId: z.string(),
+         }),
+      )
+      .query(async ({ ctx, input }) => {
+         pollCommits(input.projectId).then().catch(console.error);
+         return await ctx.db.commit.findMany({
+            where: {
+               projectId: input.projectId,
+            },
+         });
+      }),
 });

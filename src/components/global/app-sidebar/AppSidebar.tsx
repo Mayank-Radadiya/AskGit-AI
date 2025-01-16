@@ -13,13 +13,13 @@ import {
    SidebarTrigger,
    useSidebar,
 } from "@/components/ui/sidebar";
-import { sidebarItem } from "@/constants/SiderConstants";
+import { sidebarItem } from "@/constants/SidebarConstants";
 import { useProject } from "@/hooks/use-project";
 import { cn } from "@/lib/utils";
 import { Album, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import { FC } from "react";
 
 const AppSidebar: FC = ({}) => {
@@ -84,6 +84,7 @@ const AppSidebar: FC = ({}) => {
                                  <div
                                     onClick={() => {
                                        setSelectedProjectId(item.id);
+                                       redirect("/dashboard");
                                     }}
                                  >
                                     <div
