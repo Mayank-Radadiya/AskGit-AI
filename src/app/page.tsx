@@ -1,8 +1,9 @@
-export default async function Home() {
+import { redirect } from 'next/navigation'
+import { FC } from 'react'
 
-  return (
-    <>
-    Home
-    </>
-  );
+const Home: FC = ({}) => {
+    redirect("/landing")
+  return <div>page</div>
 }
+
+export default Home

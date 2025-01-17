@@ -7,22 +7,22 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "GitHub Helper",
-  description: "Help to Understand code with AI ",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+   title: "AskGit AI",
+   description:
+      "Ask questions about your Git repositories and get instant, intelligent answers powered by AI.",
 };
 
 export default function RootLayout({
-  children,
+   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <ClerkProvider>
-      <html lang="en" className={`${GeistSans.variable}`}>
-        <body>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-          <Toaster richColors />
-        </body>
-      </html>
-    </ClerkProvider>
-  );
+   return (
+      <ClerkProvider>
+         <html lang="en" className={`${GeistSans.variable}`}>
+            <body>
+               <TRPCReactProvider>{children}</TRPCReactProvider>
+               <Toaster richColors />
+            </body>
+         </html>
+      </ClerkProvider>
+   );
 }

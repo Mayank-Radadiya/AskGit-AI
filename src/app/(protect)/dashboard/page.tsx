@@ -6,7 +6,7 @@ import { FC } from "react";
 import CommitLog from "./_components/CommitLog";
 
 const page: FC = ({}) => {
-   const { project } = useProject();
+   const { project, selectedProjectId } = useProject();
    return (
       <div>
          <div className="flex flex-wrap items-center justify-between gap-y-4">
@@ -15,15 +15,21 @@ const page: FC = ({}) => {
                   <Github className="size-5 text-white" />
                   <div className="ml-4">
                      <p className="text-sm font-medium text-white">
-                        This project link to {""}
-                        <Link
-                           href={project?.githubUrl ?? ""}
-                           className="inline-flex items-center text-white/80 hover:underline"
-                        >
-                           {project?.githubUrl}
-                           <ExternalLink className="ml-1 size-4" />
-                        </Link>
-                     </p>
+                        {selectedProjectId && project?.githubUrl ? (
+                           <>
+                              This project links to {" "}
+                              <Link
+                                 href={project.githubUrl}
+                                 className="inline-flex items-center text-white/80 hover:underline"
+                              >
+                                 {project.githubUrl}
+                                 <ExternalLink className="ml-1 size-4" />
+                              </Link>
+                           </>
+                        ) : (
+                           "Select Project"
+                        )}
+                     </p>  
                   </div>
                </div>
             </div>
