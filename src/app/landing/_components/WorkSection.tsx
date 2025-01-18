@@ -24,7 +24,7 @@ const WorkSection: FC<WorkSectionProps> = ({ currentStep }) => {
                   {howItWorksSteps.map((step, index) => (
                      <div
                         key={index}
-                        className={`relative transform rounded-xl bg-white p-8 opacity-100 shadow-lg transition-all duration-500 ${
+                        className={`relative transform rounded-xl bg-white p-8 opacity-100 shadow-lg transition-all duration-300 ${
                            currentStep === index
                               ? "z-10 scale-105 ring-2 ring-blue-400"
                               : ""

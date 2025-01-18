@@ -22,11 +22,11 @@ const HeroHeading: FC = () => {
    };
 
    return (
-      <div className="dark:bg-grid-white/[0.2] bg-grid-black/[0.2] relative flex min-h-screen w-full items-center justify-center bg-white dark:bg-black">
+      <div className="relative flex min-h-screen w-full items-center justify-center bg-white bg-grid-black/[0.2] dark:bg-black dark:bg-grid-white/[0.2]">
          {/* Radial gradient for the container */}
          <div className="absolute right-10 top-8 z-50 text-xl">
             <InteractiveHoverButton
-               className="rounded-md bg-blue-300"
+               className="rounded-md bg-[#5c90ffd6]"
                onClick={() => getStartHandle()}
             >
                Login 😇

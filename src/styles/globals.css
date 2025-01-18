@@ -95,15 +95,8 @@
   }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
 
-.bg-grid-pattern {
-  background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
-  background-size: 24px 24px;
-}
+
 
 .animate-fade-in {
   animation: fadeIn 0.8s ease-out forwards;
