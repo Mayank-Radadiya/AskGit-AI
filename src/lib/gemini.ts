@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Document } from "@langchain/core/documents";
 
 if (!process.env.GEMINI_API_KEY) {
    throw new Error("GEMINI_API_KEY is Missing");
@@ -47,31 +48,33 @@ export const aISummariesCommit = async (diff: string) => {
    return response.response.text();
 };
 
-// console.log(
-//    await aISummariesCommit(`diff --git a/index.html b/index.html
-// index 9e25114..71d87f9 100644
-// --- a/index.html
-// +++ b/index.html
-// @@ -308,7 +308,7 @@ <h2>Stay Updated</h2>
-//                </form>
-//              </div>
-//            </div>
-// -          <p>&copy; 2025 AI Innovations. All rights reserved.</p>
-// +          <p>&copy; 2025 Sundown Studio. All rights reserved.</p>
-//          </footer>
-//        </div>
-//      </div>
-// diff --git a/style.css b/style.css
-// index 00b24f7..2274a4b 100644
-// --- a/style.css
-// +++ b/style.css
-// @@ -634,7 +634,7 @@ h3 {
-//    min-height: 200px;
-//  }
-//  #page6 h2 {
-// -  font-size: 35px;
-// +  font-size: 30px;
-//    font-weight: 900;
-//    letter-spacing: 3px;
-//    color: #000;`),
-// );
+export async function summariesCode(doc: Document) {
+   try {
+      const code = doc.pageContent.slice(0, 10000); //10000 Limit to character
+      const response = await model.generateContent([
+         `You are an intelligent senior software engineer who specialize in onboarding junior software engineers onto projects`,
+         `You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file
+           here is the code:
+           ---
+           ${code}
+           ---
+           give a summary no more than 100 words of the code above`,
+      ]);
+
+      return response.response.text();
+   } catch (error) {
+      console.log("Error in summariesCode", error);
+      return ""
+   }
+}
+
+export const generateEmbedding = async (summary: string) => {
+   const model = genAI.getGenerativeModel({
+      model: "text-embedding-004",
+   });
+
+   const result = await model.embedContent(summary);
+   const embedding = result.embedding;
+
+   return embedding.values;
+};

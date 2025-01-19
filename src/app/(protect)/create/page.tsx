@@ -17,9 +17,11 @@ type formInput = {
 const CreatePage = () => {
    const createProject = api.project.createProject.useMutation();
    const { register, handleSubmit, reset } = useForm<formInput>();
-   const refetch = useReFetch();
+   const refetch =  useReFetch();
+   // const refetch =  useReFetch(["project.getAllProjects"]); // Specify the query key
 
    const onSubmit = (data: formInput) => {
+      toast.warning(`It may take few second. \n Please Wait~`);
       createProject.mutate(
          {
             projectName: data.projectName,
@@ -31,9 +33,7 @@ const CreatePage = () => {
                toast.success("Project Created Successfully");
                refetch();
                setTimeout(() => {
-                  toast.success(
-                     "Go to Dashboard and Select your project from the sidebar",
-                  );
+                  toast.success("Select your project from the sidebar");
                }, 2000); // Delay of 2 seconds (2000 milliseconds)
             },
             onError: () => {

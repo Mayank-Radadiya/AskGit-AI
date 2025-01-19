@@ -60,7 +60,7 @@ const CommitLog: FC<CommitLogProps> = ({}) => {
                               {commit.commitMessage}
                            </span>
                            <pre className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-500">
-                            {commit.summary}
+                              {commit.summary}
                            </pre>
                         </div>
                      </>

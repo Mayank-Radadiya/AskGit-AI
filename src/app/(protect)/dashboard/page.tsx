@@ -4,6 +4,7 @@ import { ExternalLink, Github } from "lucide-react";
 import Link from "next/link";
 import { FC } from "react";
 import CommitLog from "./_components/CommitLog";
+import AskQue from "./_components/AskQue";
 
 const page: FC = ({}) => {
    const { project, selectedProjectId } = useProject();
@@ -41,6 +42,7 @@ const page: FC = ({}) => {
 
          <div className="m-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
+               <AskQue />
                {/* ask Que and meeting */}
             </div>
          </div>

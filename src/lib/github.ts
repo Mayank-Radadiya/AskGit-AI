@@ -14,34 +14,64 @@ type Response = {
    commitAuthorAvatar: string;
    commitDate: string;
 };
+
 // get data from github from github api key
 export const getCommitHashes = async (
    githubUrl: string,
 ): Promise<Response[]> => {
+   // Extract owner and repo from URL
    const [owner, repo] = githubUrl.split("/").slice(-2);
    if (!owner || !repo) {
-      throw new Error("Invalid Github Url");
+      throw new Error(
+         "Invalid GitHub URL. Make sure it points to a repository.",
+      );
    }
-   const cleanRepo = repo.replace(/\.git$/, "");
+   const cleanRepoUrl = repo.replace(/\.git$/, "");
 
-   const { data } = await octokit.rest.repos.listCommits({
-      owner,
-      repo: cleanRepo,
-   });
+   let allCommits: Response[] = [];
+   let page = 1;
 
-   const sortedCommits = data.sort(
-      (a: any, b: any) =>
-         new Date(b.commit.author?.date).getTime() -
-         new Date(a.commit.author?.date).getTime(),
-   ) as any[];
+   try {
+      while (true) {
+         // Include token by using the preconfigured Octokit instance
+         const { data } = await octokit.rest.repos.listCommits({
+            owner,
+            repo: cleanRepoUrl,
+            per_page: 100,
+            page,
+         });
 
-   return sortedCommits.map((commit) => ({
-      commitHash: commit.sha as string,
-      commitMessage: commit.commit.message ?? "",
-      commitAuthorName: commit.commit?.author?.name ?? "",
-      commitAuthorAvatar: commit.author?.avatar_url ?? "",
-      commitDate: commit.commit?.author?.date ?? "",
-   }));
+         if (data.length === 0) break;
+
+         const commits = data.map((commit) => ({
+            commitHash: commit.sha,
+            commitMessage: commit.commit.message ?? "",
+            commitAuthorName: commit.commit?.author?.name ?? "",
+            commitAuthorAvatar: commit.author?.avatar_url ?? "",
+            commitDate: commit.commit?.author?.date ?? "",
+         }));
+
+         allCommits = [...allCommits, ...commits];
+         page++;
+      }
+
+      // Sort commits by date (descending)
+      return allCommits.sort(
+         (a, b) =>
+            new Date(b.commitDate).getTime() - new Date(a.commitDate).getTime(),
+      );
+   } catch (error: any) {
+      if (error.status === 403) {
+         console.error(
+            "API rate limit exceeded. Ensure your GitHub token is valid and has sufficient permissions.",
+         );
+      } else {
+         console.error("Error fetching commits:", error.message);
+      }
+      throw new Error(
+         "Failed to fetch commits. Please check the repository URL or API rate limit.",
+      );
+   }
 };
 
 // get project  and githubUrl from github
@@ -58,7 +88,6 @@ const fetchGithubUrl = async (projectId: string) => {
    if (!project?.githubUrl) {
       throw new Error("Project has no Github Url");
    }
-
    return { project, githubUrl: project?.githubUrl };
 };
 
@@ -77,7 +106,6 @@ const filterUnprocessedCommit = async (
                processedCommits.commitHash === commit.commitHash,
          ),
    );
-
    return unprocessedCommits;
 };
 
@@ -93,7 +121,6 @@ const summariesCommits = async (githubUrl: string, commitHash: string) => {
          },
       },
    );
-
    return (await aISummariesCommit(data)) || "";
 };
 
@@ -107,8 +134,6 @@ export const pollCommits = async (projectId: string) => {
 
    const summariesResponse = await Promise.allSettled(
       unprocessedCommits.map((commit) => {
-         console.log(commit.commitHash);
-
          return summariesCommits(githubUrl, commit.commitHash);
       }),
    );
@@ -133,6 +158,6 @@ export const pollCommits = async (projectId: string) => {
          };
       }),
    });
-
+   
    return commits;
 };

@@ -1,5 +1,7 @@
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
-
+import { Document } from "@langchain/core/documents";
+import { generateEmbedding, summariesCode } from "./gemini";
+import { db } from "@/server/db";
 // From docs
 // export const run = async () => {
 //    const loader = new GithubRepoLoader(
@@ -20,7 +22,9 @@ export const loadGithubRepo = async (
    githubUrl: string,
    githubToken?: string,
 ) => {
-   const loader = new GithubRepoLoader(githubUrl, {
+   const cleanGithubUrl = githubUrl.replace(/\.git$/, "");
+
+   const loader = new GithubRepoLoader(cleanGithubUrl, {
       accessToken: githubToken || "",
       branch: "main",
       recursive: true,
@@ -64,6 +68,46 @@ export const loadGithubRepo = async (
    return docs;
 };
 
-console.log(
-   await loadGithubRepo("https://github.com/Mayank-Radadiya/PRICE_WISE"),
-);
+const generateEmbeddings = async (docs: Document[]) => {
+   return await Promise.all(
+      docs.map(async (doc) => {
+         const summary = await summariesCode(doc);
+         const embedding = await generateEmbedding(summary);
+         return {
+            summary,
+            embedding,
+            sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
+            fileName: doc.metadata.source,
+         };
+      }),
+   );
+};
+
+export const indexGithubRepo = async (
+   projectId: string,
+   githubUrl: string,
+   githubToken?: string,
+) => {
+   const docs = await loadGithubRepo(githubUrl, githubToken);
+   const allEmbedding = await generateEmbeddings(docs);
+   await Promise.allSettled(
+      allEmbedding.map(async (embedding, index) => {
+         if (!embedding) return;
+
+         const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
+            data: {
+               summary: embedding.summary,
+               sourceCode: embedding.sourceCode,
+               fileName: embedding.fileName,
+               projectId,
+            },
+         });
+
+         await db.$executeRaw`
+         UPDATE "SourceCodeEmbedding"
+         SET "summaryEmbedding" = ${embedding.embedding}::vector
+         WHERE "id" = ${sourceCodeEmbedding.id}
+         `;
+      }),
+   );
+};

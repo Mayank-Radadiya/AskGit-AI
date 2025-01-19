@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
 import { FC } from "react";
 import { toast } from "sonner";
+import GithubButton from "./_components/GithubButton";
 
 const HeroHeading: FC = () => {
    const { isSignedIn } = useAuth();
@@ -26,7 +27,7 @@ const HeroHeading: FC = () => {
          {/* Radial gradient for the container */}
          <div className="absolute right-10 top-8 z-50 text-xl">
             <InteractiveHoverButton
-               className="rounded-md bg-[#5c90ffd6]"
+               className="rounded-md px-5  bg-[#2362eb] text-white"
                onClick={() => getStartHandle()}
             >
                Login 😇
@@ -45,15 +46,15 @@ const HeroHeading: FC = () => {
                   insights effortlessly.
                </p>
                <div className="flex justify-center gap-4">
-                  <div className="flex justify-center gap-4">
+                  <div className="flex w-full justify-center gap-4">
                      <button
-                        className="inline-flex transform items-center rounded-lg bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-blue-700 hover:shadow-2xl"
+                        className="inline-flex h-12 transform items-center rounded-lg bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-blue-700 hover:shadow-2xl"
                         onClick={() => getStartHandle()}
                      >
                         Get Started
                         <ArrowRight className="ml-2 h-5 w-5" />
                      </button>
-                     <button
+                     {/* <button
                         className="inline-flex transform items-center rounded-lg border-2 border-blue-600 px-8 py-3 text-lg font-semibold text-blue-600 transition-all duration-300 hover:scale-105 hover:text-black hover:shadow-lg"
                         onClick={() =>
                            redirect(
@@ -62,7 +63,8 @@ const HeroHeading: FC = () => {
                         }
                      >
                         Learn More
-                     </button>
+                     </button> */}
+                     <GithubButton />
                   </div>
                </div>
             </div>

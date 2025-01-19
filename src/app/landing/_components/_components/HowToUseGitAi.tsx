@@ -23,7 +23,7 @@ export function MultiStepLoaderDemo() {
             Get Clear instructions
          </button> */}
          <InteractiveHoverButton
-            className="rounded-md bg-[#427effd6] text-xl"
+            className="rounded-md bg-[#2362eb] px-5 text-xl text-white"
             onClick={() => setLoading(true)}
          >
             Get Clear instructions 👉

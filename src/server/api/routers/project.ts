@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { pollCommits } from "@/lib/github";
 import { TRPCError } from "@trpc/server";
+import { indexGithubRepo } from "@/lib/github_loader";
 
 export const projectRouter = createTRPCRouter({
    createProject: protectedProcedure
@@ -34,7 +35,11 @@ export const projectRouter = createTRPCRouter({
                },
             },
          });
+
+         await indexGithubRepo(project.id, input.repoUrl, input.githubToken);
+
          await pollCommits(project.id);
+
          return project;
       }),
 
@@ -65,7 +70,7 @@ export const projectRouter = createTRPCRouter({
          }),
       )
       .query(async ({ ctx, input }) => {
-         pollCommits(input.projectId).then().catch(console.error);
+         await pollCommits(input.projectId).then().catch(console.error);
          return await ctx.db.commit.findMany({
             where: {
                projectId: input.projectId,
