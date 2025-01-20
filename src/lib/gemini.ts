@@ -50,7 +50,7 @@ export const aISummariesCommit = async (diff: string) => {
 
 export async function summariesCode(doc: Document) {
    try {
-      const code = doc.pageContent.slice(0, 10000); //10000 Limit to character
+      const code = doc.pageContent.slice(0, 15000); //10000 Limit to character
       const response = await model.generateContent([
          `You are an intelligent senior software engineer who specialize in onboarding junior software engineers onto projects`,
          `You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file
@@ -78,3 +78,6 @@ export const generateEmbedding = async (summary: string) => {
 
    return embedding.values;
 };
+
+// still getting  same error i thing i have to change gemini to open ai.
+// i give gemini code . Convert this code for open ai.Use same prompt. 

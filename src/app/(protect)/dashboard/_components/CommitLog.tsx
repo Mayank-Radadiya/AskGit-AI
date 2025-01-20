@@ -15,7 +15,6 @@ const CommitLog: FC<CommitLogProps> = ({}) => {
    const { data: commits } = api.project.getCommits.useQuery({
       projectId: selectedProjectId,
    });
-
    return (
       <>
          <ul className="space-y-6">

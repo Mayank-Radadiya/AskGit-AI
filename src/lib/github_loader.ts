@@ -92,6 +92,8 @@ export const indexGithubRepo = async (
    const allEmbedding = await generateEmbeddings(docs);
    await Promise.allSettled(
       allEmbedding.map(async (embedding, index) => {
+         console.log(`processing ${index} of ${embedding.fileName}`);
+
          if (!embedding) return;
 
          const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
@@ -102,7 +104,18 @@ export const indexGithubRepo = async (
                projectId,
             },
          });
+         // console.log("length => ", embedding.embedding.length); // Check vector dimensions
+         // const adjustedVector =
+         //    embedding.embedding.length === 786
+         //       ? embedding.embedding
+         //       : embedding.embedding.length > 786
+         //         ? embedding.embedding.slice(0, 786)
+         //         : [
+         //              ...embedding.embedding,
+         //              ...new Array(786 - embedding.embedding.length).fill(0),
+         //           ];
 
+         console.log("Embedding length:", embedding.embedding.length);
          await db.$executeRaw`
          UPDATE "SourceCodeEmbedding"
          SET "summaryEmbedding" = ${embedding.embedding}::vector
