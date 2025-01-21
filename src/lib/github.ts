@@ -218,6 +218,7 @@ import { db } from "@/server/db";
 import { Octokit } from "octokit";
 import axios from "axios";
 import { aISummariesCommit } from "./gemini";
+import { toast } from "sonner";
 
 export const octokit = new Octokit({
    auth: process.env.GITHUB_TOKEN,
@@ -239,40 +240,32 @@ export const getCommitHashes = async (
    if (!owner || !repo) {
       throw new Error("Invalid GitHub URL.");
    }
-   const cleanRepoUrl = repo.replace(/\.git$/, "");
 
    try {
       const { data } = await octokit.rest.repos.listCommits({
          owner,
-         repo: cleanRepoUrl,
-         headers: {
-            Authorization: `token ${process.env.GITHUB_TOKEN}`,
-         },
+         repo,
+         per_page: 100, // Max commits per request
       });
 
-      return data
-         .map((commit: any) => ({
-            commitHash: commit.sha,
-            commitMessage: commit.commit.message ?? "",
-            commitAuthorName: commit.commit.author?.name ?? "",
-            commitAuthorAvatar: commit.author?.avatar_url ?? "",
-            commitDate: commit.commit.author?.date ?? "",
-         }))
-         .sort(
-            (a, b) =>
-               new Date(b.commitDate).getTime() -
-               new Date(a.commitDate).getTime(),
-         );
+      return data.map((commit: any) => ({
+         commitHash: commit.sha,
+         commitMessage: commit.commit.message || "",
+         commitAuthorName: commit.commit.author?.name || "Unknown",
+         commitAuthorAvatar: commit.author?.avatar_url || "",
+         commitDate: commit.commit.author?.date || "",
+      }));
    } catch (error: any) {
-      if (error.status === 403) {
-         console.error("API rate limit exceeded.");
-      } else {
-         console.error("Error fetching commits:", error.message);
-      }
-      throw new Error("Failed to fetch commits.");
+      console.error("Error fetching commits:", error.message);
+      throw new Error(
+         error.status === 403
+            ? "API rate limit exceeded. Please try again later."
+            : "Failed to fetch commits. Check the GitHub URL and token.",
+      );
    }
 };
 
+// Fetch GitHub URL for a project
 const fetchGithubUrl = async (projectId: string) => {
    const project = await db.project.findUnique({
       where: { id: projectId },
@@ -280,11 +273,12 @@ const fetchGithubUrl = async (projectId: string) => {
    });
 
    if (!project?.githubUrl) {
-      throw new Error("Project has no GitHub URL.");
+      throw new Error("Project does not have a valid GitHub URL.");
    }
-   return { githubUrl: project.githubUrl };
+   return { githubUrl: project.githubUrl.replace(/\.git$/, "") };
 };
 
+// Filter unprocessed commits
 const filterUnprocessedCommit = async (
    projectId: string,
    commits: Response[],
@@ -298,25 +292,29 @@ const filterUnprocessedCommit = async (
    return commits.filter((commit) => !processedHashes.has(commit.commitHash));
 };
 
+// Generate summaries for commits
 const summariesCommits = async (githubUrl: string, commitHash: string) => {
-   const cleanGithubUrl = githubUrl.replace(/\.git$/, "");
-
    try {
       const { data } = await axios.get(
-         `${cleanGithubUrl}/commit/${commitHash}.diff`,
+         `${githubUrl}/commit/${commitHash}.diff`,
          {
             headers: { Accept: "application/vnd.github.v3.diff" },
          },
       );
       return await aISummariesCommit(data);
-   } catch (error) {
-      console.error("Error fetching or summarizing commit diff:", error);
+   } catch (error: any) {
+      console.error(
+         `Error fetching or summarizing diff for commit ${commitHash}:`,
+         error.message,
+      );
       return ""; // Return an empty summary on failure
    }
 };
 
+// Delay utility
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Poll commits and process summaries
 export const pollCommits = async (projectId: string) => {
    const { githubUrl } = await fetchGithubUrl(projectId);
    const commitHashes = await getCommitHashes(githubUrl);
@@ -325,7 +323,7 @@ export const pollCommits = async (projectId: string) => {
       commitHashes,
    );
 
-   const batchSize = 5; // Process in batches of 5 commits
+   const batchSize = 5; // Number of commits to process in a single batch
    const summariesResponse: { summary: string; commit: Response }[] = [];
 
    for (let i = 0; i < unprocessedCommits.length; i += batchSize) {
@@ -333,21 +331,29 @@ export const pollCommits = async (projectId: string) => {
 
       const batchResults = await Promise.allSettled(
          batch.map(async (commit) => {
-            const summary = await summariesCommits(
-               githubUrl,
-               commit.commitHash,
-            );
-            return { summary, commit };
+            try {
+               const summary = await summariesCommits(
+                  githubUrl,
+                  commit.commitHash,
+               );
+               return { summary, commit };
+            } catch (error: any) {
+               console.error(
+                  `Failed to summarize commit ${commit.commitHash}:`,
+                  error.message,
+               );
+               return null; // Ignore failed commits
+            }
          }),
       );
 
       summariesResponse.push(
          ...batchResults
-            .filter((result) => result.status === "fulfilled")
+            .filter((result) => result.status === "fulfilled" && result.value)
             .map((result: any) => result.value),
       );
 
-      await delay(2000); // Wait 2 seconds between batches to respect rate limits
+      await delay(2000); // Wait 2 seconds between batches to respect API limits
    }
 
    const validSummaries = summariesResponse.map(({ summary, commit }) => ({
@@ -360,9 +366,22 @@ export const pollCommits = async (projectId: string) => {
       summary: summary || "No summary available.",
    }));
 
-   const commits = await db.commit.createMany({
-      data: validSummaries,
+   if (validSummaries.length > 0) {
+      await db.commit.createMany({ data: validSummaries });
+   }
+
+   return validSummaries;
+};
+
+export const deleteProject = async (projectId: string) => {
+   if (!projectId) return;
+
+   await db.project.delete({
+      where: {
+         id: projectId,
+      },
    });
 
-   return commits;
+   return true;
 };
+

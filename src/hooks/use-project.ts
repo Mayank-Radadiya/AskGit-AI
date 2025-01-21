@@ -2,10 +2,10 @@ import { api } from "@/trpc/react";
 import { useLocalStorage } from "usehooks-ts";
 
 export const useProject = () => {
-   const { data: projects } = api.project.getAllProjects.useQuery();
+   const { data: projects } = api.project.getProjects.useQuery();
    const [selectedProjectId, setSelectedProjectId] = useLocalStorage(
-      "my-projectId",
-      "",
+      "projectID",
+      " ",
    );
 
    // find current project with current projectId witch stored in localStorage

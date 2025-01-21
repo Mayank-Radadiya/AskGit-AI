@@ -5,9 +5,12 @@ import Link from "next/link";
 import { FC } from "react";
 import CommitLog from "./_components/CommitLog";
 import AskQue from "./_components/AskQue";
+import { Button } from "@/components/ui/button";
+import DeleteButton from "./_components/DeleteButton";
 
 const page: FC = ({}) => {
    const { project, selectedProjectId } = useProject();
+
    return (
       <div>
          <div className="flex flex-wrap items-center justify-between gap-y-4">
@@ -18,7 +21,7 @@ const page: FC = ({}) => {
                      <p className="text-sm font-medium text-white">
                         {selectedProjectId && project?.githubUrl ? (
                            <>
-                              This project links to {" "}
+                              This project links to{" "}
                               <Link
                                  href={project.githubUrl}
                                  className="inline-flex items-center text-white/80 hover:underline"
@@ -30,10 +33,12 @@ const page: FC = ({}) => {
                         ) : (
                            "Select Project"
                         )}
-                     </p>  
+                     </p>
                   </div>
                </div>
             </div>
+
+            {project?.id ? <DeleteButton projectId={project.id} /> : <></>}
 
             <div className="h-4"></div>
 

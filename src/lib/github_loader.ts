@@ -22,9 +22,7 @@ export const loadGithubRepo = async (
    githubUrl: string,
    githubToken?: string,
 ) => {
-   const cleanGithubUrl = githubUrl.replace(/\.git$/, "");
-
-   const loader = new GithubRepoLoader(cleanGithubUrl, {
+   const loader = new GithubRepoLoader(githubUrl, {
       accessToken: githubToken || "",
       branch: "main",
       recursive: true,

@@ -1,4 +1,5 @@
 "use client";
+import Loader from "@/components/global/loader/Loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useReFetch } from "@/hooks/use-refetch";
@@ -17,7 +18,7 @@ type formInput = {
 const CreatePage = () => {
    const createProject = api.project.createProject.useMutation();
    const { register, handleSubmit, reset } = useForm<formInput>();
-   const refetch =  useReFetch();
+   const refetch = useReFetch();
    // const refetch =  useReFetch(["project.getAllProjects"]); // Specify the query key
 
    const onSubmit = (data: formInput) => {
@@ -86,7 +87,13 @@ const CreatePage = () => {
                         variant="default"
                         disabled={createProject.isPending}
                      >
-                        Create Project
+                        {createProject.isPending ? (
+                           <>
+                              <Loader />{" "}
+                           </>
+                        ) : (
+                           <>Create Project</>
+                        )}
                      </Button>
                   </form>
                </div>
