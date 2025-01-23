@@ -384,4 +384,3 @@ export const deleteProject = async (projectId: string) => {
 
    return true;
 };
-

@@ -9,7 +9,7 @@ import { deleteProjectRouter } from "./routers/delete";
  */
 export const appRouter = createTRPCRouter({
    project: projectRouter,
-   delete: deleteProjectRouter
+   delete: deleteProjectRouter,
 });
 
 // export type definition of API

@@ -39,7 +39,7 @@ export async function askQuestion(question: string, projectId: string) {
    (async () => {
       const { textStream } = await streamText({
          model: google("gemini-1.5-flash"),
-              prompt: `
+         prompt: `
          //    You are a ai code assistant who answers question about codebase.You target audience is technical inter
          //      AI assistant is a brand new, powerful, human-like artificial intelligence.
          //   The traits of AI include expert knowledge, helpfulness, cleverness, and articulateness.
@@ -83,12 +83,12 @@ export async function askQuestion(question: string, projectId: string) {
 
          //    ---
 
-         //    **START CONTEXT BLOCK**  
-         //    ${context}  
-         //    **END CONTEXT BLOCK**  
+         //    **START CONTEXT BLOCK**
+         //    ${context}
+         //    **END CONTEXT BLOCK**
 
-         //    **START QUESTION**  
-         //    ${question}  
+         //    **START QUESTION**
+         //    ${question}
          //    **END QUESTION**
 
          //    Respond thoroughly and accurately, while adhering to the guidelines above. If new information is learned during the conversation, incorporate it into subsequent answers.
@@ -109,7 +109,6 @@ export async function askQuestion(question: string, projectId: string) {
          //    };
          //    exampleFunction();
 
-                    
          // `,
       });
 

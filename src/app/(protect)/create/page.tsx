@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useReFetch } from "@/hooks/use-refetch";
 import { api } from "@/trpc/react";
+import { FileText, Github, KeyRound, Send } from "lucide-react";
 import Image from "next/image";
-import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -35,9 +35,10 @@ const CreatePage = () => {
                refetch();
                setTimeout(() => {
                   toast.success("Select your project from the sidebar");
-               }, 2000); // Delay of 2 seconds (2000 milliseconds)
+               }, 3000);
             },
             onError: () => {
+               toast.dismiss()
                toast.error("Failed to create project.");
             },
          },
@@ -60,27 +61,43 @@ const CreatePage = () => {
                </div>
                <div>
                   <form className="mt-4" onSubmit={handleSubmit(onSubmit)}>
-                     <Input
-                        className="mb-4"
-                        type="text"
-                        required
-                        {...register("projectName", { required: true })}
-                        placeholder="Project Name"
-                     />
+                     <div className="relative mb-4">
+                        <span className="absolute inset-y-0 left-3 flex items-center">
+                           <FileText className="text-gray-500" />
+                        </span>
 
-                     <Input
-                        className="mb-3"
-                        type="url"
-                        required
-                        {...register("repoUrl", { required: true })}
-                        placeholder="Github Repository URL"
-                     />
+                        <Input
+                           className="w-full pl-12" // Add padding to the left for the icon space
+                           type="text"
+                           required
+                           {...register("projectName", { required: true })}
+                           placeholder="Project Name"
+                        />
+                     </div>
 
-                     <Input
-                        className="mb-3"
-                        {...register("githubToken")}
-                        placeholder="Github Token (Only for Private Repository)"
-                     />
+                     <div className="relative mb-4">
+                        <span className="absolute inset-y-0 left-3 flex items-center">
+                           <Github className="text-gray-500" />
+                        </span>
+                        <Input
+                           className="mb-3 pl-12"
+                           type="url"
+                           required
+                           {...register("repoUrl", { required: true })}
+                           placeholder="Github Repository URL"
+                        />
+                     </div>
+
+                     <div className="relative mb-4">
+                        <span className="absolute inset-y-0 left-3 flex items-center">
+                           <KeyRound className="text-gray-500" />
+                        </span>
+                        <Input
+                           className="mb-3 pl-12"
+                           {...register("githubToken")}
+                           placeholder="*Github Token (Only for Private Repository)"
+                        />
+                     </div>
 
                      <Button
                         type="submit"
@@ -92,7 +109,9 @@ const CreatePage = () => {
                               <Loader />{" "}
                            </>
                         ) : (
-                           <>Create Project</>
+                           <>
+                              <Send /> Create Project
+                           </>
                         )}
                      </Button>
                   </form>
