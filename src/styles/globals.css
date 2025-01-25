@@ -112,3 +112,12 @@
     transform: translateY(0);
   }
 }
+
+/* styles.css or a CSS module */
+code[class*="language-"],
+pre[class*="language-"] {
+   font-family: "Fira Code", monospace;
+   background-color: #2d2d2d;
+   color: #f8f8f2;
+   /* Add other necessary styles */
+}

@@ -43,7 +43,9 @@ export const aISummariesCommit = async (diff: string) => {
     because there were more than two relevant files in the hypothetical commit.
     Do not include parts of the example in your summary.
     It is given only as an example of appropriate comments.`,
-      `Please summaries the following diff file: \n\n ${diff}`,
+      `Please summaries the following diff file: 
+      \n\n ${diff}
+      `,
    ]);
    return response.response.text();
 };
@@ -64,7 +66,7 @@ export async function summariesCode(doc: Document) {
       return response.response.text();
    } catch (error) {
       console.log("Error in summariesCode", error);
-      return ""
+      return "";
    }
 }
 
@@ -78,6 +80,3 @@ export const generateEmbedding = async (summary: string) => {
 
    return embedding.values;
 };
-
-// still getting  same error i thing i have to change gemini to open ai.
-// i give gemini code . Convert this code for open ai.Use same prompt. 

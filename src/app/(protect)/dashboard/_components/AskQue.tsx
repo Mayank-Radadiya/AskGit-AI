@@ -9,7 +9,6 @@ import { askQuestion } from "../_action/action";
 import {
    Sheet,
    SheetContent,
-   SheetDescription,
    SheetHeader,
    SheetTitle,
    SheetTrigger,
@@ -17,14 +16,13 @@ import {
 import { readStreamableValue } from "ai/rsc";
 import MDEditor from "@uiw/react-md-editor";
 import CodeReference from "./CodeReference";
+import "@/styles/globals.css";
 
-interface AskQueProps {}
-
-const AskQue: FC<AskQueProps> = ({}) => {
+const AskQue: FC = () => {
    const { project } = useProject();
    const [question, setQuestion] = useState("");
    const [loading, setLoading] = useState(false);
-   const [fileReference, setFileReference] = useState<
+   const [fileReferences, setFileReferences] = useState<
       {
          fileName: string;
          sourceCode: string;
@@ -35,16 +33,16 @@ const AskQue: FC<AskQueProps> = ({}) => {
 
    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      setAnswer("");
-      setFileReference([]);
       if (!project?.id) return;
+      setAnswer("");
+      setFileReferences([]);
       setLoading(true);
 
       const { output, fileReferences } = await askQuestion(
          question,
          project.id,
       );
-      setFileReference(fileReferences);
+      setFileReferences(fileReferences);
       for await (const delta of readStreamableValue(output)) {
          if (delta) {
             setAnswer((ans) => ans + delta);
@@ -52,6 +50,7 @@ const AskQue: FC<AskQueProps> = ({}) => {
       }
       setLoading(false);
    };
+
    return (
       <>
          {/* Ask Que Card */}
@@ -62,8 +61,9 @@ const AskQue: FC<AskQueProps> = ({}) => {
             <CardContent>
                <form onSubmit={onSubmit}>
                   <Textarea
-                     placeholder="Which file should I edit to change Home page? "
+                     placeholder="Which file should I edit to change the Home page?"
                      onChange={(e) => setQuestion(e.target.value)}
+                     disabled={loading}
                   />
                   <div className="h-4"></div>
 
@@ -73,35 +73,73 @@ const AskQue: FC<AskQueProps> = ({}) => {
                         type="submit"
                      >
                         <span className="absolute -top-[150%] left-0 inline-flex h-[5px] w-80 rounded-md bg-blue-400 opacity-50 shadow-[0_0_10px_10px_rgba(0,0,0,0.3)] shadow-blue-400 duration-500 group-hover:top-[150%]" />
-                        Ask to AI
+                        {loading ? "Processing..." : "Ask to AI"}
                      </SheetTrigger>
                      <SheetContent
-                        style={{ maxWidth: "60vw" }}
-                        className="max-h-screen overflow-y-scroll"
+                        style={{ maxWidth: "65vw" }}
+                        className="scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-gray-200 max-h-screen overflow-y-auto"
                      >
                         <SheetHeader>
                            <SheetTitle>
-                              <Image
-                                 src="/logo.svg"
-                                 width={40}
-                                 height={40}
-                                 alt="logo"
-                              />
+                              <div className="flex items-center gap-3 text-2xl">
+                                 <Image
+                                    src="/logo.svg"
+                                    width={40}
+                                    height={40}
+                                    alt="logo"
+                                 />
+                                 AskGit AI
+                              </div>
                            </SheetTitle>
-                           <SheetDescription>
-                              This action cannot be undone. This will
-                              permanently delete your account and remove your
-                              data from our servers.
-                           </SheetDescription>
                         </SheetHeader>
-                        <SheetDescription className="overflow-y-scroll">
-                           <MDEditor.Markdown
-                              source={answer}
-                              className="!h-full max-h-[40vh] overflow-scroll"
-                           />
-                           <div className="h-4"></div>
-                           <CodeReference fileReference={fileReference} />
-                        </SheetDescription>
+
+                        {/* Separate block content */}
+                        <div className="mt-5 text-sm text-muted-foreground">
+                           {loading && (
+                              <div className="mb-5 flex items-center justify-center gap-3 rounded-md bg-blue-50 p-4 text-blue-700">
+                                 <svg
+                                    className="h-5 w-5 animate-spin text-blue-500"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                 >
+                                    <circle
+                                       className="opacity-25"
+                                       cx="12"
+                                       cy="12"
+                                       r="10"
+                                       stroke="currentColor"
+                                       strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                       className="opacity-75"
+                                       fill="currentColor"
+                                       d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z"
+                                    ></path>
+                                 </svg>
+                                 <span className="text-sm font-medium">
+                                    Generating the summary... Please wait a few
+                                    seconds.
+                                 </span>
+                              </div>
+                           )}
+
+                           {answer && (
+                              <MDEditor.Markdown
+                                 source={answer}
+                                 className="scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-gray-200 mb-5 max-h-[50vh] overflow-y-auto"
+                                 style={{
+                                    whiteSpace: "wrap",
+                                    padding: "20px",
+                                    fontFamily: "monospace",
+                                    justifyContent: "center",
+                                 }}
+                              />
+                           )}
+                           {fileReferences.length > 0 && (
+                              <CodeReference fileReference={fileReferences} />
+                           )}
+                        </div>
                      </SheetContent>
                   </Sheet>
                </form>

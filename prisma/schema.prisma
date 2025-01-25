@@ -28,7 +28,6 @@ model User {
     userToProjects UserToProject[]
 }
 
-
 model Project {
     id        String     @id @default(cuid())
     createdAt DateTime   @default(now())
@@ -41,10 +40,9 @@ model Project {
     deletedAt DateTime? 
 
     userToProjects UserToProject[]
-    commits  Commit[] 
+    commits  Commit[]
     sourceCodeEmbeddings SourceCodeEmbedding[]
 }
-
 
 model UserToProject {
     id        String     @id @default(cuid())
@@ -60,40 +58,30 @@ model UserToProject {
     @@unique([userId, projectId])
 }
 
-
-
 model SourceCodeEmbedding {
-     id     String      @id @default(cuid())
+    id     String      @id @default(cuid())
 
-     summaryEmbedding   Unsupported("vector(768)")?
-     sourceCode         String
-     fileName           String
-     summary            String
+    summaryEmbedding   Unsupported("vector(768)")?
+    sourceCode         String
+    fileName           String
+    summary            String
 
     projectId   String
-    project     Project @relation(fields: [projectId], references: [id])     
+    project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
-
-
 
 model Commit {
-      id        String      @id @default(cuid())
-    createdAt DateTime      @default(now())
-    updatedAt DateTime      @updatedAt 
+    id                String      @id @default(cuid())
+    createdAt         DateTime    @default(now())
+    updatedAt         DateTime    @updatedAt 
 
-    projectId   String
-    project     Project @relation(fields: [projectId], references: [id])
+    projectId         String
+    project           Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    commitMessage       String
-    commitHash          String
-    commitAuthorName    String
-    commitAuthorAvatar  String
-    commitDate          DateTime
-    summary             String 
-
+    commitMessage     String
+    commitHash        String
+    commitAuthorName  String
+    commitAuthorAvatar String
+    commitDate        DateTime
+    summary           String 
 }
-
-
-
-
-

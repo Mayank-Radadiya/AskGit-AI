@@ -153,16 +153,13 @@
 
 // export const pollCommits = async (projectId: string) => {
 //    const { githubUrl } = await fetchGithubUrl(projectId);
-//    console.log(1);
 
 //    const commitHashes = await getCommitHashes(githubUrl);
-//    console.log(2);
 
 //    const unprocessedCommits = await filterUnprocessedCommit(
 //       projectId,
 //       commitHashes,
 //    );
-//    console.log(3);
 
 //    const delay = (ms: number) =>
 //       new Promise((resolve) => setTimeout(resolve, ms));
@@ -174,7 +171,6 @@
 //       }),
 //    );
 
-//    console.log(4);
 
 //    //https://github.com/Mayank-Radadiya/Sundown-Studio/commit/5c18b1c3e7efacd7e621f7a9aaeeedbd55ac2211.diff
 //    const summaries = summariesResponse.map((response) => {

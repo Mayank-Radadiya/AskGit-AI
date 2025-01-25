@@ -22,7 +22,9 @@ export const loadGithubRepo = async (
    githubUrl: string,
    githubToken?: string,
 ) => {
-   const loader = new GithubRepoLoader(githubUrl, {
+   const cleanUrl = githubUrl.replace(/\.git$/, "");
+
+   const loader = new GithubRepoLoader(cleanUrl, {
       accessToken: githubToken || "",
       branch: "main",
       recursive: true,
@@ -63,6 +65,7 @@ export const loadGithubRepo = async (
    });
 
    const docs = await loader.load();
+
    return docs;
 };
 
@@ -89,7 +92,7 @@ export const indexGithubRepo = async (
    const docs = await loadGithubRepo(githubUrl, githubToken);
    const allEmbedding = await generateEmbeddings(docs);
    await Promise.allSettled(
-      allEmbedding.map(async (embedding, index) => {
+      allEmbedding.map(async(embedding, index) => {
          console.log(`processing ${index} of ${embedding.fileName}`);
 
          if (!embedding) return;
@@ -102,7 +105,6 @@ export const indexGithubRepo = async (
                projectId,
             },
          });
-         // console.log("length => ", embedding.embedding.length); // Check vector dimensions
          // const adjustedVector =
          //    embedding.embedding.length === 786
          //       ? embedding.embedding
@@ -113,7 +115,6 @@ export const indexGithubRepo = async (
          //              ...new Array(786 - embedding.embedding.length).fill(0),
          //           ];
 
-         console.log("Embedding length:", embedding.embedding.length);
          await db.$executeRaw`
          UPDATE "SourceCodeEmbedding"
          SET "summaryEmbedding" = ${embedding.embedding}::vector
