@@ -171,7 +171,6 @@
 //       }),
 //    );
 
-
 //    //https://github.com/Mayank-Radadiya/Sundown-Studio/commit/5c18b1c3e7efacd7e621f7a9aaeeedbd55ac2211.diff
 //    const summaries = summariesResponse.map((response) => {
 //       console.log("status", response.status);
@@ -214,7 +213,6 @@ import { db } from "@/server/db";
 import { Octokit } from "octokit";
 import axios from "axios";
 import { aISummariesCommit } from "./gemini";
-import { toast } from "sonner";
 
 export const octokit = new Octokit({
    auth: process.env.GITHUB_TOKEN,
@@ -241,10 +239,14 @@ export const getCommitHashes = async (
       const { data } = await octokit.rest.repos.listCommits({
          owner,
          repo,
+         headers: {
+            // Authorization: `token ${process.env.GITHUB_TOKEN}`,
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, // Authenticate the request
+         },
          per_page: 100, // Max commits per request
       });
 
-      return data.map((commit: any) => ({
+      return data.slice(0, 15).map((commit: any) => ({
          commitHash: commit.sha,
          commitMessage: commit.commit.message || "",
          commitAuthorName: commit.commit.author?.name || "Unknown",
@@ -367,16 +369,4 @@ export const pollCommits = async (projectId: string) => {
    }
 
    return validSummaries;
-};
-
-export const deleteProject = async (projectId: string) => {
-   if (!projectId) return;
-
-   await db.project.delete({
-      where: {
-         id: projectId,
-      },
-   });
-
-   return true;
 };
