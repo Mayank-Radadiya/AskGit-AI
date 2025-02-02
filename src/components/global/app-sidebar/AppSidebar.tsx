@@ -76,40 +76,47 @@ const AppSidebar: FC = ({}) => {
             <SidebarGroup>
                <SidebarGroupLabel>Your Projects</SidebarGroupLabel>
                <SidebarMenu>
-                  {projects ? (
-                     <>
-                        {projects.map((item) => (
-                           <SidebarMenuItem key={item.id}>
-                              <SidebarMenuButton asChild>
+                  {projects?.length! > 0 ? (
+                     projects?.map((item) => (
+                        <SidebarMenuItem key={item.id}>
+                           <SidebarMenuButton asChild>
+                              <div
+                                 onClick={() => {
+                                    setSelectedProjectId(item.id);
+                                    redirect("/dashboard");
+                                 }}
+                                 className="flex cursor-pointer items-center gap-2"
+                              >
                                  <div
-                                    onClick={() => {
-                                       setSelectedProjectId(item.id);
-                                       redirect("/dashboard");
-                                    }}
+                                    className={cn(
+                                       "flex h-7 w-7 items-center justify-center rounded-sm border bg-white text-sm text-primary",
+                                       {
+                                          "bg-primary text-white":
+                                             item.id === selectedProjectId,
+                                       },
+                                    )}
                                  >
-                                    <div
-                                       className={cn(
-                                          "flex size-7 items-center justify-center rounded-sm border bg-white text-sm text-primary",
-                                          {
-                                             "bg-primary text-white":
-                                                item.id === selectedProjectId,
-                                          },
-                                       )}
-                                    >
-                                       {item.name[0]}
-                                    </div>
-                                    {open && <span>{item.name}</span>}
+                                    {item.name[0]!.toUpperCase()}
                                  </div>
-                              </SidebarMenuButton>
-                           </SidebarMenuItem>
-                        ))}
-                     </>
+                                 {open && (
+                                    <span className="text-sm font-medium">
+                                       {item.name}
+                                    </span>
+                                 )}
+                              </div>
+                           </SidebarMenuButton>
+                        </SidebarMenuItem>
+                     ))
                   ) : (
-                     <>
-                        {" "}
-                        <Album />{" "}
-                     </>
+                     <div className="flex flex-col items-center justify-center gap-2 p-4 text-center">
+                        <Album className="h-12 w-12 text-gray-400" />
+                        <p className="text-sm text-gray-500">
+                           No projects found. Create a new project to get
+                           started!
+                        </p>
+                     </div>
                   )}
+
                   <div className="h-2"></div>
                   {open && (
                      <SidebarMenuItem>

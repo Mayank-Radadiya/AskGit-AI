@@ -4,8 +4,9 @@ import { streamText } from "ai";
 import { createStreamableValue } from "ai/rsc";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import exp from "constants";
-import { generateEmbedding } from "@/lib/gemini";
 import { db } from "@/server/db";
+import { generateEmbedding } from "@/lib/gemini";
+// import { generateEmbedding } from "@/lib/openAi";
 
 const google = createGoogleGenerativeAI({
    apiKey: process.env.GEMINI_API_KEY,
@@ -15,7 +16,7 @@ export async function askQuestion(question: string, projectId: string) {
    const stream = createStreamableValue();
 
    const queryVector = await generateEmbedding(question);
-   const vectorQuery = `[${queryVector.join(",")}]`;
+   const vectorQuery = `[${queryVector?.join(",")}]`;
 
    const result = (await db.$queryRaw`
     SELECT "fileName", "sourceCode", "summary",

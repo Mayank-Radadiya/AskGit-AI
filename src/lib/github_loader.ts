@@ -2,6 +2,7 @@ import { GithubRepoLoader } from "@langchain/community/document_loaders/web/gith
 import { Document } from "@langchain/core/documents";
 import { generateEmbedding, summariesCode } from "./gemini";
 import { db } from "@/server/db";
+// import { generateEmbedding, summariesCode } from "./openAi";
 // From docs
 // export const run = async () => {
 //    const loader = new GithubRepoLoader(
@@ -73,6 +74,7 @@ const generateEmbeddings = async (docs: Document[]) => {
    return await Promise.all(
       docs.map(async (doc) => {
          const summary = await summariesCode(doc);
+         if (typeof summary !== "string") return;
          const embedding = await generateEmbedding(summary);
          return {
             summary,
@@ -92,8 +94,8 @@ export const indexGithubRepo = async (
    const docs = await loadGithubRepo(githubUrl, githubToken);
    const allEmbedding = await generateEmbeddings(docs);
    await Promise.allSettled(
-      allEmbedding.map(async(embedding, index) => {
-         console.log(`processing ${index} of ${embedding.fileName}`);
+      allEmbedding.map(async (embedding, index) => {
+         console.log(`processing ${index} of ${embedding?.fileName}`);
 
          if (!embedding) return;
 
@@ -105,16 +107,6 @@ export const indexGithubRepo = async (
                projectId,
             },
          });
-         // const adjustedVector =
-         //    embedding.embedding.length === 786
-         //       ? embedding.embedding
-         //       : embedding.embedding.length > 786
-         //         ? embedding.embedding.slice(0, 786)
-         //         : [
-         //              ...embedding.embedding,
-         //              ...new Array(786 - embedding.embedding.length).fill(0),
-         //           ];
-
          await db.$executeRaw`
          UPDATE "SourceCodeEmbedding"
          SET "summaryEmbedding" = ${embedding.embedding}::vector

@@ -40,6 +40,7 @@ const CreatePage = () => {
             onError: () => {
                toast.dismiss()
                toast.error("Failed to create project.");
+
             },
          },
       );

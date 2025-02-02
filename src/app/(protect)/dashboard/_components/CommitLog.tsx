@@ -12,7 +12,7 @@ interface CommitLogProps {}
 
 const CommitLog: FC<CommitLogProps> = ({}) => {
    const { selectedProjectId, project } = useProject();
-   const { data: commits } = api.project.getCommits.useQuery({
+   const { data: commits = [] } = api.project.getCommits.useQuery({
       projectId: selectedProjectId,
    });
    return (

@@ -42,15 +42,7 @@ export const projectRouter = createTRPCRouter({
             await indexGithubRepo(project.id, input.repoUrl, input.githubToken);
 
             // Poll commits for the new project
-            try {
-               await pollCommits(project.id);
-            } catch (error) {
-               console.error("Error polling commits:", error);
-               throw new TRPCError({
-                  code: "INTERNAL_SERVER_ERROR",
-                  message: "Failed to poll commits.",
-               });
-            }
+            await pollCommits(project.id);
 
             return project;
          } catch (error) {
@@ -76,7 +68,7 @@ export const projectRouter = createTRPCRouter({
             },
          });
 
-         return projects;
+         return projects.length > 0 ? projects : [];
       } catch (error) {
          console.error("Error fetching projects:", error);
          throw new TRPCError({
