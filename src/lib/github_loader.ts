@@ -2,7 +2,6 @@ import { GithubRepoLoader } from "@langchain/community/document_loaders/web/gith
 import { Document } from "@langchain/core/documents";
 import { generateEmbedding, summariesCode } from "./gemini";
 import { db } from "@/server/db";
-// import { generateEmbedding, summariesCode } from "./openAi";
 // From docs
 // export const run = async () => {
 //    const loader = new GithubRepoLoader(

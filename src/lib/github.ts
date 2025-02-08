@@ -1,12 +1,19 @@
 import { db } from "@/server/db";
 import { Octokit } from "octokit";
 import axios from "axios";
-import { aISummariesCommit } from "./openAi";
-// import { aISummariesCommit } from "./gemini";
+import { aISummariesCommit } from "./gemini";
 
 export const octokit = new Octokit({
    auth: process.env.GITHUB_TOKEN,
 });
+
+async function checkRateLimit() {
+   const { data } = await octokit.request("GET /rate_limit");
+   console.log("Rate Limit Info:", data);
+}
+
+checkRateLimit();
+
 
 type Response = {
    commitMessage: string;
@@ -29,9 +36,11 @@ export const getCommitHashes = async (
       const { data } = await octokit.rest.repos.listCommits({
          owner,
          repo,
+         per_page: 15, // Explicitly set page size
+         page: 1, // Implement pagination
          headers: {
-            Authorization: `token ${process.env.GITHUB_TOKEN}`,
-            // Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, // Authenticate the request
+            // Authorization: `token ${process.env.GITHUB_TOKEN}`,
+            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, // Authenticate the request
          },
       });
 
@@ -111,7 +120,7 @@ export const pollCommits = async (projectId: string) => {
       commitHashes,
    );
 
-   const batchSize = 5; // Number of commits to process in a single batch
+   const batchSize = 3; // Number of commits to process in a single batch
    const summariesResponse: { summary: string; commit: Response }[] = [];
 
    for (let i = 0; i < unprocessedCommits.length; i += batchSize) {
@@ -141,7 +150,7 @@ export const pollCommits = async (projectId: string) => {
             .map((result: any) => result.value),
       );
 
-      await delay(2000); // Wait 2 seconds between batches to respect API limits
+      await delay(5000); // Wait 2 seconds between batches to respect API limits
    }
 
    const validSummaries = summariesResponse.map(({ summary, commit }) => ({
@@ -165,15 +174,36 @@ export const pollCommits = async (projectId: string) => {
 
 function handleGitHubError(error: any) {
    if (error.status === 403) {
-      const resetTime = error.response.headers["x-ratelimit-reset"];
-      const delay = resetTime ? parseInt(resetTime) * 1000 - Date.now() : 5000;
+      // Check for authentication issues first
+      if (!process.env.GITHUB_TOKEN) {
+         throw new Error("GitHub token is missing - authentication required");
+      }
 
-      console.log(
-         `Rate limit exceeded. Retrying in ${Math.round(delay / 1000)} seconds...`,
-      );
-      return new Promise((resolve) => setTimeout(resolve, delay));
+      // Parse rate limit headers
+      const remaining = error.response.headers["x-ratelimit-remaining"];
+      const resetTime = error.response.headers["x-ratelimit-reset"];
+
+      if (remaining === "0") {
+         const resetDate = new Date(parseInt(resetTime) * 1000);
+         const delayMs = resetDate.getTime() - Date.now() + 5000; // Add buffer
+
+         console.log(
+            `Rate limit exhausted. Resets at ${resetDate.toISOString()}`,
+         );
+         return new Promise((resolve) =>
+            setTimeout(resolve, Math.max(delayMs, 0)),
+         );
+      }
+
+      throw new Error(`GitHub API forbidden: ${error.message}`);
    }
 
-   throw new Error(`GitHub API Error: ${error.message}`);
-}
+   // Handle secondary rate limits
+   if (error.status === 429) {
+      const retryAfter = error.response.headers["retry-after"] || 30;
+      console.log(`Secondary rate limit - retrying after ${retryAfter}s`);
+      return new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+   }
 
+   throw error;
+}

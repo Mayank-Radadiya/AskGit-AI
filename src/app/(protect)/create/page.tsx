@@ -19,7 +19,6 @@ const CreatePage = () => {
    const createProject = api.project.createProject.useMutation();
    const { register, handleSubmit, reset } = useForm<formInput>();
    const refetch = useReFetch();
-   // const refetch =  useReFetch(["project.getAllProjects"]); // Specify the query key
 
    const onSubmit = (data: formInput) => {
       toast.warning(`It may take few second. \n Please Wait~`);

@@ -68,7 +68,7 @@ export const projectRouter = createTRPCRouter({
             },
          });
 
-         return projects.length > 0 ? projects : [];
+         return projects ?? [];
       } catch (error) {
          console.error("Error fetching projects:", error);
          throw new TRPCError({
@@ -93,7 +93,7 @@ export const projectRouter = createTRPCRouter({
                },
             });
 
-            return commits;
+            return commits ?? [];
          } catch (error) {
             console.error("Error fetching commits:", error);
             throw new TRPCError({

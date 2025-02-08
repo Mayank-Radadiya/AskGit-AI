@@ -6,7 +6,6 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import exp from "constants";
 import { db } from "@/server/db";
 import { generateEmbedding } from "@/lib/gemini";
-// import { generateEmbedding } from "@/lib/openAi";
 
 const google = createGoogleGenerativeAI({
    apiKey: process.env.GEMINI_API_KEY,
