@@ -25,7 +25,7 @@ export const loadGithubRepo = async (
    const cleanUrl = githubUrl.replace(/\.git$/, "");
 
    const loader = new GithubRepoLoader(cleanUrl, {
-      accessToken: githubToken || "",
+      accessToken: githubToken ?? "",
       branch: "main",
       recursive: true,
       unknown: "warn",
@@ -71,17 +71,29 @@ export const loadGithubRepo = async (
 
 const generateEmbeddings = async (docs: Document[]) => {
    return await Promise.all(
-      docs.map(async (doc) => {
-         const summary = await summariesCode(doc);
-         if (typeof summary !== "string") return;
-         const embedding = await generateEmbedding(summary);
-         return {
-            summary,
-            embedding,
-            sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
-            fileName: doc.metadata.source,
-         };
-      }),
+      docs.map(
+         async (
+            doc,
+         ): Promise<
+            | {
+                 summary: string;
+                 embedding: number[];
+                 sourceCode: string;
+                 fileName: string;
+              }
+            | undefined
+         > => {
+            const summary = await summariesCode(doc);
+            if (typeof summary !== "string") return;
+            const embedding = (await generateEmbedding(summary)) as number[];
+            return {
+               summary,
+               embedding,
+               sourceCode: JSON.stringify(doc.pageContent), // Avoid unnecessary parsing
+               fileName: doc.metadata.source as string, // Ensure proper typing
+            };
+         },
+      ),
    );
 };
 
@@ -94,9 +106,9 @@ export const indexGithubRepo = async (
    const allEmbedding = await generateEmbeddings(docs);
    await Promise.allSettled(
       allEmbedding.map(async (embedding, index) => {
-         console.log(`processing ${index} of ${embedding?.fileName}`);
-
          if (!embedding) return;
+
+         console.log(`Processing ${index} of ${embedding.fileName}`);
 
          const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
             data: {
@@ -106,9 +118,10 @@ export const indexGithubRepo = async (
                projectId,
             },
          });
+
          await db.$executeRaw`
          UPDATE "SourceCodeEmbedding"
-         SET "summaryEmbedding" = ${embedding.embedding}::vector
+         SET "summaryEmbedding" = ${JSON.stringify(embedding.embedding)}::vector
          WHERE "id" = ${sourceCodeEmbedding.id}
          `;
       }),

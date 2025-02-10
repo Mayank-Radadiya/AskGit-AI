@@ -3,7 +3,6 @@
 import { streamText } from "ai";
 import { createStreamableValue } from "ai/rsc";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import exp from "constants";
 import { db } from "@/server/db";
 import { generateEmbedding } from "@/lib/gemini";
 
@@ -36,7 +35,6 @@ export async function askQuestion(question: string, projectId: string) {
    for (const doc of result) {
       context += `source: ${doc.fileName} \n code content: ${doc.sourceCode} \n summary of file: ${doc.summary}\n\n`;
    }
-   console.log("context => ", context);
 
    (async () => {
       const { textStream } = await streamText({
@@ -70,8 +68,6 @@ export async function askQuestion(question: string, projectId: string) {
 
       stream.done();
    })();
-
-   console.log("value => ", stream.value);
 
    return {
       output: stream.value,

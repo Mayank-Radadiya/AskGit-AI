@@ -21,7 +21,9 @@ const CreatePage = () => {
    const refetch = useReFetch();
 
    const onSubmit = (data: formInput) => {
-      toast.warning(`It may take few second. \n Please Wait~`);
+      toast.warning(`It may take few second. \n Please Wait~`, {
+         duration: 10000, // Keeps the toast visible for 5 seconds
+      });
       createProject.mutate(
          {
             projectName: data.projectName,
@@ -30,6 +32,7 @@ const CreatePage = () => {
          },
          {
             onSuccess: () => {
+               toast.dismiss();
                toast.success("Project Created Successfully");
                refetch();
                setTimeout(() => {
@@ -37,9 +40,8 @@ const CreatePage = () => {
                }, 3000);
             },
             onError: () => {
-               toast.dismiss()
+               toast.dismiss();
                toast.error("Failed to create project.");
-
             },
          },
       );

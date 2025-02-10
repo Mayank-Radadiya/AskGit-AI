@@ -14,7 +14,6 @@ async function checkRateLimit() {
 
 checkRateLimit();
 
-
 type Response = {
    commitMessage: string;
    commitHash: string;
@@ -99,10 +98,10 @@ const summariesCommits = async (githubUrl: string, commitHash: string) => {
          },
       );
       return await aISummariesCommit(data);
-   } catch (error: any) {
+   } catch (error) {
       console.error(
          `Error fetching or summarizing diff for commit ${commitHash}:`,
-         error.message,
+         error,
       );
       return ""; // Return an empty summary on failure
    }
@@ -134,10 +133,10 @@ export const pollCommits = async (projectId: string) => {
                   commit.commitHash,
                );
                return { summary, commit };
-            } catch (error: any) {
+            } catch (error) {
                console.error(
                   `Failed to summarize commit ${commit.commitHash}:`,
-                  error.message,
+                  error
                );
                return null; // Ignore failed commits
             }
@@ -172,38 +171,45 @@ export const pollCommits = async (projectId: string) => {
    return validSummaries;
 };
 
-function handleGitHubError(error: any) {
-   if (error.status === 403) {
-      // Check for authentication issues first
-      if (!process.env.GITHUB_TOKEN) {
-         throw new Error("GitHub token is missing - authentication required");
+function handleGitHubError(error: unknown): Promise<void> | never {
+   if (typeof error === "object" && error !== null && "status" in error) {
+      const err = error as { 
+         status: number; 
+         response?: { 
+            headers: Record<string, string>; 
+         }; 
+      };
+
+      if (err.status === 403) {
+         if (!process.env.GITHUB_TOKEN) {
+            throw new Error("GitHub token is missing - authentication required");
+         }
+
+         const remaining = err.response?.headers["x-ratelimit-remaining"];
+         const resetTime = err.response?.headers["x-ratelimit-reset"];
+
+         if (remaining === "0" && resetTime) {
+            const resetDate = new Date(parseInt(resetTime) * 1000);
+            const delayMs = resetDate.getTime() - Date.now() + 5000; // Add buffer
+
+            console.log(
+               `Rate limit exhausted. Resets at ${resetDate.toISOString()}`,
+            );
+            return new Promise((resolve) =>
+               setTimeout(resolve, Math.max(delayMs, 0)),
+            );
+         }
+
+         throw new Error(`GitHub API forbidden: ${JSON.stringify(error)}`);
       }
 
-      // Parse rate limit headers
-      const remaining = error.response.headers["x-ratelimit-remaining"];
-      const resetTime = error.response.headers["x-ratelimit-reset"];
-
-      if (remaining === "0") {
-         const resetDate = new Date(parseInt(resetTime) * 1000);
-         const delayMs = resetDate.getTime() - Date.now() + 5000; // Add buffer
-
-         console.log(
-            `Rate limit exhausted. Resets at ${resetDate.toISOString()}`,
-         );
-         return new Promise((resolve) =>
-            setTimeout(resolve, Math.max(delayMs, 0)),
-         );
+      if (err.status === 429) {
+         const retryAfter = parseInt(err.response?.headers["retry-after"] || "30", 10);
+         console.log(`Secondary rate limit - retrying after ${retryAfter}s`);
+         return new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
       }
-
-      throw new Error(`GitHub API forbidden: ${error.message}`);
-   }
-
-   // Handle secondary rate limits
-   if (error.status === 429) {
-      const retryAfter = error.response.headers["retry-after"] || 30;
-      console.log(`Secondary rate limit - retrying after ${retryAfter}s`);
-      return new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
    }
 
    throw error;
 }
+

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { FC } from "react";
 import CommitLog from "./_components/CommitLog";
 import AskQue from "./_components/AskQue";
-import { Button } from "@/components/ui/button";
 import DeleteButton from "./_components/DeleteButton";
 import { Cover } from "@/components/ui/cover";
 import CreateProjectButton from "./_components/CreateProjectButton";
